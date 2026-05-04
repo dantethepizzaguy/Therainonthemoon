@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For You</title>
+    
+    <style>
+        :root {
+            --sunset-start: #ffb8c5;
+            --sunset-mid: #f9d9d9;
+            --sunset-end: #b69eff;
+            --btn-pink: #ff8a9a;
+            --deep-pink: #ff4d6d;
+            --space-bg: #0b0d17;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body, html { height: 100%; font-family: 'Poppins', sans-serif; }
+        body { display: flex; justify-content: center; align-items: center; background: linear-gradient(160deg, var(--sunset-start) 0%, var(--sunset-mid) 40%, #ffe9f0 70%, var(--sunset-end) 100%); transition: background 1.5s ease-in-out; overflow: hidden; }
+
+        .hidden { display: none !important; }
+        .bokeh-container { position: fixed; width: 100vw; height: 100vh; pointer-events: none; z-index: 1; }
+        .bokeh { position: absolute; border-radius: 50%; filter: blur(4px); animation: floatBokeh infinite linear; }
+        @keyframes floatBokeh { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-40px); } }
+
+        #rain-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; display: none; }
+        .drop { position: absolute; background: rgba(255, 255, 255, 0.6); width: 1px; height: 20px; animation: fall linear infinite; }
+        @keyframes fall { to { transform: translateY(110vh); } }
+
+        #rocket { position: fixed; bottom: -150px; left: 50%; transform: translateX(-50%); font-size: 60px; z-index: 100; transition: bottom 1.5s cubic-bezier(.47,0,.74,.71); filter: drop-shadow(0 0 10px orange); }
+
+        .message-box { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(18px); border-top: 4px solid #ffffff; border-radius: 30px; padding: 30px 25px; width: 90%; max-width: 450px; text-align: center; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.08); z-index: 10; max-height: 92vh; overflow-y: auto; display: flex; flex-direction: column; align-items: center; }
+        .shimmer-text { font-size: 1.1rem; line-height: 1.6; margin-bottom: 25px; color: #888; }
+        @keyframes shine { to { background-position: 200% center; } }
+
+        .letter-text { font-size: 1rem; line-height: 1.6; color: var(--deep-pink); text-align: left; margin-bottom: 10px; font-weight: 500; }
+        .highlight { color: #ff0000; font-weight: 700; }
+        .dante-note { display: block; margin-top: 15px; font-size: 0.85rem; color: #888; font-style: italic; text-align: center; }
+
+        .btn-proceed { border: none; padding: 14px 30px; font-weight: 700; border-radius: 50px; cursor: pointer; background-color: var(--btn-pink); color: white; box-shadow: 0 5px 20px rgba(255, 138, 154, 0.4); margin: 5px; }
+        .btn-secondary { border: 1px solid var(--btn-pink); padding: 12px 25px; border-radius: 50px; background: transparent; color: var(--btn-pink); cursor: pointer; font-weight: 600; margin: 5px; }
+
+        /* Page 3 Space View */
+        #page3 { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--space-bg); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 20; }
+        .star { position: absolute; background: white; border-radius: 50%; animation: twinkle 2s infinite; z-index: 21; }
+        @keyframes twinkle { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+
+        .moon { position: relative; width: 180px; height: 180px; background: transparent; border-radius: 50%; box-shadow: 30px 30px 0 0 #f0f0f0; margin-bottom: 20px; transform: rotate(-20deg); z-index: 25; }
+        .animals { position: absolute; bottom: 0; right: -20px; display: flex; align-items: flex-end; transform: rotate(20deg); }
+        
+        .earth-small { width: 65px; height: 65px; background: #2b82c9; border-radius: 50%; position: absolute; top: 8%; left: 8%; box-shadow: inset -5px -5px 0 rgba(0,0,0,0.2), 0 0 15px rgba(43, 130, 201, 0.4); overflow: hidden; z-index: 22; }
+        .land-small { position: absolute; background: #4caf50; border-radius: 50%; }
+        
+        .jupiter-small { width: 100px; height: 100px; background: linear-gradient(#d39c7e, #ebd3be, #d39c7e); border-radius: 50%; position: absolute; top: 5%; right: 12%; box-shadow: inset -10px -10px 0 rgba(0,0,0,0.2), 0 0 20px rgba(211, 156, 126, 0.3); overflow: hidden; z-index: 26; }
+        .jupiter-small::after { content: ''; position: absolute; width: 100%; height: 6px; background: rgba(0,0,0,0.05); top: 45%; box-shadow: 0 12px 0 rgba(0,0,0,0.05), 0 -12px 0 rgba(255,255,255,0.1); }
+        .mars-small { width: 40px; height: 40px; background: #c1440e; border-radius: 50%; position: absolute; top: 40%; left: 5%; box-shadow: inset -5px -5px 0 rgba(0,0,0,0.3), 0 0 10px rgba(193, 68, 14, 0.4); z-index: 22; }
+
+        /* Page 4 Fireworks View */
+        #page4 { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #050b1a; display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 30; }
+        #firework-canvas { position: absolute; width: 100%; height: 100%; }
+        .platform { position: absolute; bottom: 0; width: 100%; height: 120px; background: linear-gradient(to bottom, #d1d5db, #9ca3af); z-index: 31; }
+        .railing { position: absolute; top: -20px; width: 100%; height: 20px; border-top: 3px solid #4b5563; background-image: repeating-linear-gradient(90deg, #4b5563, #4b5563 2px, transparent 2px, transparent 30px); }
+        .platform-animals { position: absolute; top: -75px; left: 50%; transform: translateX(-50%); display: flex; gap: 15px; }
+
+        /* ===== PAGE 5 ===== */
+        #page5 {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #fff5f7; display: none; flex-direction: column;
+            align-items: center; justify-content: center;
+            z-index: 40; padding: 30px 20px; overflow-y: auto;
+        }
+
+        .page5-title {
+            font-size: 1.7rem;
+            font-weight: 800;
+            text-align: center;
+            color: var(--deep-pink);
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+            line-height: 1.3;
+        }
+
+        .page5-subtitle {
+            color: #aaa;
+            font-size: 0.9rem;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .gift-box {
+            background: white;
+            border-radius: 28px;
+            padding: 28px 24px;
+            width: 100%;
+            max-width: 340px;
+            box-shadow: 0 10px 40px rgba(255, 77, 109, 0.12);
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .gift-card {
+            background: linear-gradient(135deg, #fff0f4, #ffe4ec);
+            border: 1.5px solid #ffd6e0;
+            padding: 18px 20px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            cursor: pointer;
+            transition: transform 0.18s, box-shadow 0.18s;
+            text-align: left;
+        }
+
+        .gift-card:active { transform: scale(0.96); }
+
+        .gift-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(255, 77, 109, 0.18);
+        }
+
+        .gift-card-icon { font-size: 2.4rem; flex-shrink: 0; }
+
+        .gift-card-text p {
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: #333;
+            margin-bottom: 2px;
+        }
+
+        .gift-card-text span {
+            font-size: 0.8rem;
+            color: #aaa;
+        }
+
+        /* Gift overlay popup */
+        #gift-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.45); z-index: 999;
+            display: none; justify-content: center; align-items: center;
+            padding: 20px;
+        }
+
+        .overlay-card {
+            background: white;
+            border-radius: 28px;
+            padding: 32px 26px;
+            max-width: 380px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.2);
+            position: relative;
+            animation: popIn 0.3s ease;
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.85); opacity: 0; }
+            to   { transform: scale(1);    opacity: 1; }
+        }
+
+        .overlay-card h2 {
+            color: var(--deep-pink);
+            font-size: 1.3rem;
+            margin-bottom: 18px;
+        }
+
+        .overlay-close {
+            margin-top: 20px;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 50px;
+            background: var(--btn-pink);
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 5px 18px rgba(255, 138, 154, 0.4);
+        }
+
+        .heart-particle { position: fixed; pointer-events: none; z-index: 100; animation: heartFloat 4s linear forwards; }
+        @keyframes heartFloat { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-110vh) scale(1.5); opacity: 0; } }
+
+        /* ===== BOUQUET PAGE ===== */
+        #page-bouquet {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            display: none; flex-direction: column;
+            align-items: center; justify-content: center;
+            z-index: 50; overflow: hidden;
+        }
+
+        #page-bouquet video {
+            position: absolute;
+            width: 100%;
+            height: 50%;
+            object-fit: cover;
+            left: 0;
+        }
+
+        #vid-top  { top: 0; }
+        #vid-bottom { bottom: 0; }
+
+        /* dark overlay so text is readable */
+        #page-bouquet::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+            z-index: 51;
+        }
+
+        /* horizontal divider line between videos */
+        #page-bouquet::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: rgba(255,255,255,0.15);
+            z-index: 52;
+        }
+
+        .bouquet-card {
+            position: relative;
+            z-index: 53;
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.25);
+            border-radius: 28px;
+            padding: 32px 28px;
+            max-width: 320px;
+            width: 88%;
+            text-align: center;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+        }
+
+        .bouquet-emoji {
+            font-size: 2.8rem;
+            margin-bottom: 18px;
+            animation: gentlePulse 3s ease-in-out infinite;
+        }
+
+        @keyframes gentlePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+        }
+
+        .bouquet-quote {
+            font-size: 1.05rem;
+            line-height: 1.9;
+            color: white;
+            font-style: italic;
+            font-weight: 500;
+            text-shadow: 0 1px 6px rgba(0,0,0,0.5);
+            letter-spacing: 0.3px;
+        }
+
+        .bouquet-back {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 54;
+            border: 1px solid rgba(255,255,255,0.4);
+            background: rgba(255,255,255,0.12);
+            color: white;
+            padding: 10px 24px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+        }
+
+        .rose-petal {
+            position: absolute;
+            z-index: 55;
+            pointer-events: none;
+            animation: petalFall linear forwards;
+            opacity: 0.9;
+        }
+
+        @keyframes petalFall {
+            0%   { transform: translateY(0) rotate(0deg);   opacity: 1; }
+            100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+        }
+    </style>
+</head>
+<body id="main-bg">
+
+    <div class="bokeh-container" id="bokeh-container"></div>
+    <div id="rain-container"></div>
+    <div id="rocket">🚀</div>
+
+    <!-- PAGE 1 -->
+    <div id="page1" class="message-box">
+        <p style="font-size:1.1rem; line-height:1.6; margin-bottom:25px; color:#888;">
+            hey ik it's been tough for you,<br>
+            i may not have much time to provide you anything but here's a little something for you👇🏻<br>
+            may you like it 🫶🏻
+        </p>
+        <button onclick="window.startExperience()" style="display:block; border:none; padding:14px 30px; font-weight:700; border-radius:50px; cursor:pointer; background-color:#ff8a9a; color:white; font-size:1rem; box-shadow:0 5px 20px rgba(255,138,154,0.4); margin:0 auto;">proceed</button>
+    </div>
+
+    <!-- PAGE 2 -->
+    <div id="page2" class="message-box hidden">
+        <div style="font-size: 3rem; margin-bottom: 15px; text-align: center;">☂️</div>
+        <div class="letter-text">
+            Hey, <span class="highlight">vanshika</span> ik I've ended up draining you sm i js am an immature guy ik that for a fact but i js wanted to let you know that you're a really strong kind and courageous person... <br><br>
+            you will never be alone never ever you will have me with you always, ik i cannot help you with your situation but i know you've been strong and you're genuinely the <span class="highlight">strongest woman</span> I've ever met i will always be sooo proud of you.<br><br>
+            always remember even if the skies are dark and greyish i will still not leave you in the rain alone, i'll bring you umbrella and we'll go through everything together.
+            <span class="dante-note">(does that make sense? damn I'm such a dumbahh dante fr)</span>
+        </div>
+        <button class="btn-proceed" onclick="window.flyToSpace()">shall we fly onto the next page?</button>
+    </div>
+
+    <!-- PAGE 3 -->
+    <div id="page3">
+        <div id="star-field"></div>
+        <div class="earth-small">
+            <div class="land-small" style="width: 25px; height: 15px; top: 10px; left: 5px;"></div>
+            <div class="land-small" style="width: 20px; height: 25px; top: 25px; left: 25px;"></div>
+        </div>
+        <div class="jupiter-small"></div>
+        <div class="mars-small"></div>
+        <div class="moon">
+            <div class="animals">
+                <!-- DETAILED MOON FOX (sitting, facing forward) -->
+                <svg width="48" height="58" viewBox="0 0 100 130">
+                    <!-- tail behind body -->
+                    <path d="M65 120 Q90 100 86 76 Q82 58 70 65 Q63 70 64 85" fill="#e07820"/>
+                    <path d="M67 117 Q84 100 81 80 Q78 67 72 72 Q67 76 68 88" fill="#cc6010" opacity="0.5"/>
+                    <ellipse cx="85" cy="72" rx="9" ry="7" fill="white" transform="rotate(-30 85 72)"/>
+                    <ellipse cx="84" cy="71" rx="5" ry="4" fill="#f0f0f0" transform="rotate(-30 84 71)"/>
+                    <!-- body -->
+                    <path d="M28 122 Q50 80 72 122" fill="#e07820"/>
+                    <path d="M36 120 Q50 88 64 120" fill="#cc6010" opacity="0.3"/>
+                    <ellipse cx="50" cy="104" rx="14" ry="17" fill="#f5d5a0"/>
+                    <ellipse cx="50" cy="90" rx="9" ry="7" fill="#f5d5a0"/>
+                    <!-- neck -->
+                    <ellipse cx="50" cy="72" rx="11" ry="8" fill="#e07820"/>
+                    <!-- head -->
+                    <ellipse cx="50" cy="60" rx="22" ry="20" fill="#e07820"/>
+                    <ellipse cx="50" cy="51" rx="16" ry="10" fill="#cc6010" opacity="0.2"/>
+                    <!-- cheeks -->
+                    <ellipse cx="34" cy="64" rx="9" ry="7" fill="#f5d5a0"/>
+                    <ellipse cx="66" cy="64" rx="9" ry="7" fill="#f5d5a0"/>
+                    <!-- snout -->
+                    <ellipse cx="50" cy="68" rx="10" ry="7" fill="#f5d5a0"/>
+                    <ellipse cx="50" cy="64" rx="3.5" ry="2.5" fill="#222"/>
+                    <ellipse cx="49" cy="63" rx="1.2" ry="0.8" fill="#555"/>
+                    <path d="M44 70 Q50 75 56 70" fill="none" stroke="#b05010" stroke-width="1" stroke-linecap="round"/>
+                    <!-- ears -->
+                    <polygon points="36,44 24,12 44,38" fill="#e07820"/>
+                    <polygon points="64,44 76,12 56,38" fill="#e07820"/>
+                    <polygon points="36,42 27,18 43,37" fill="#d45f60"/>
+                    <polygon points="64,42 73,18 57,37" fill="#d45f60"/>
+                    <polygon points="36,40 26,14 31,14" fill="#222" opacity="0.25"/>
+                    <polygon points="64,40 74,14 69,14" fill="#222" opacity="0.25"/>
+                    <!-- eyes -->
+                    <ellipse cx="41" cy="57" rx="4.5" ry="5" fill="#1a1a1a"/>
+                    <ellipse cx="59" cy="57" rx="4.5" ry="5" fill="#1a1a1a"/>
+                    <ellipse cx="41" cy="57" rx="3" ry="3.5" fill="#c07820"/>
+                    <ellipse cx="59" cy="57" rx="3" ry="3.5" fill="#c07820"/>
+                    <ellipse cx="41" cy="57" rx="1" ry="3" fill="#111"/>
+                    <ellipse cx="59" cy="57" rx="1" ry="3" fill="#111"/>
+                    <circle cx="43" cy="55" r="1" fill="white"/>
+                    <circle cx="61" cy="55" r="1" fill="white"/>
+                    <!-- paws -->
+                    <ellipse cx="38" cy="124" rx="9" ry="5" fill="#e07820"/>
+                    <ellipse cx="62" cy="124" rx="9" ry="5" fill="#e07820"/>
+                    <ellipse cx="34" cy="126" rx="3" ry="1.8" fill="#cc6010"/>
+                    <ellipse cx="41" cy="127" rx="3" ry="1.8" fill="#cc6010"/>
+                    <ellipse cx="58" cy="127" rx="3" ry="1.8" fill="#cc6010"/>
+                    <ellipse cx="65" cy="126" rx="3" ry="1.8" fill="#cc6010"/>
+                </svg>
+
+                <!-- DETAILED MOON BUNNY (sitting, facing forward) -->
+                <svg width="38" height="58" viewBox="0 0 100 130">
+                    <!-- left ear -->
+                    <ellipse cx="36" cy="22" rx="9" ry="28" fill="#a0a0a0"/>
+                    <ellipse cx="36" cy="22" rx="4.5" ry="22" fill="#e8b4b8"/>
+                    <ellipse cx="36" cy="13" rx="3.5" ry="9" fill="#c8a0a4" opacity="0.5"/>
+                    <!-- right ear slightly tilted -->
+                    <ellipse cx="64" cy="20" rx="9" ry="28" fill="#a0a0a0" transform="rotate(7 64 20)"/>
+                    <ellipse cx="64" cy="20" rx="4.5" ry="22" fill="#e8b4b8" transform="rotate(7 64 20)"/>
+                    <ellipse cx="65" cy="11" rx="3.5" ry="9" fill="#c8a0a4" opacity="0.5" transform="rotate(7 65 11)"/>
+                    <!-- body -->
+                    <ellipse cx="50" cy="105" rx="26" ry="28" fill="#a8a8a8"/>
+                    <ellipse cx="50" cy="108" rx="18" ry="20" fill="#888" opacity="0.25"/>
+                    <ellipse cx="50" cy="107" rx="14" ry="18" fill="#d8d8d8"/>
+                    <ellipse cx="50" cy="90" rx="10" ry="8" fill="#d8d8d8"/>
+                    <!-- neck -->
+                    <ellipse cx="50" cy="76" rx="12" ry="8" fill="#a8a8a8"/>
+                    <!-- head -->
+                    <ellipse cx="50" cy="62" rx="23" ry="21" fill="#a8a8a8"/>
+                    <ellipse cx="50" cy="53" rx="15" ry="10" fill="#888" opacity="0.18"/>
+                    <!-- cheeks -->
+                    <ellipse cx="33" cy="66" rx="10" ry="8" fill="#b8b8b8"/>
+                    <ellipse cx="67" cy="66" rx="10" ry="8" fill="#b8b8b8"/>
+                    <!-- snout -->
+                    <ellipse cx="50" cy="70" rx="9" ry="6" fill="#d0d0d0"/>
+                    <ellipse cx="50" cy="66" rx="3.5" ry="2.5" fill="#e8a0b0"/>
+                    <ellipse cx="49" cy="65" rx="1.3" ry="0.9" fill="#f0c0c8"/>
+                    <path d="M44 72 Q50 77 56 72" fill="none" stroke="#999" stroke-width="1" stroke-linecap="round"/>
+                    <line x1="50" y1="69" x2="50" y2="73" stroke="#999" stroke-width="0.9" stroke-linecap="round"/>
+                    <!-- whiskers -->
+                    <line x1="28" y1="68" x2="43" y2="70" stroke="#bbb" stroke-width="0.7"/>
+                    <line x1="28" y1="71" x2="43" y2="71" stroke="#bbb" stroke-width="0.7"/>
+                    <line x1="57" y1="70" x2="72" y2="68" stroke="#bbb" stroke-width="0.7"/>
+                    <line x1="57" y1="71" x2="72" y2="71" stroke="#bbb" stroke-width="0.7"/>
+                    <!-- eyes -->
+                    <ellipse cx="40" cy="59" rx="5" ry="5.5" fill="#1a1a1a"/>
+                    <ellipse cx="60" cy="59" rx="5" ry="5.5" fill="#1a1a1a"/>
+                    <ellipse cx="40" cy="59" rx="3.5" ry="4" fill="#3a2060"/>
+                    <ellipse cx="60" cy="59" rx="3.5" ry="4" fill="#3a2060"/>
+                    <ellipse cx="40" cy="59" rx="2" ry="3" fill="#111"/>
+                    <ellipse cx="60" cy="59" rx="2" ry="3" fill="#111"/>
+                    <circle cx="42" cy="57" r="1.3" fill="white"/>
+                    <circle cx="62" cy="57" r="1.3" fill="white"/>
+                    <circle cx="39" cy="60" r="0.5" fill="white" opacity="0.6"/>
+                    <circle cx="59" cy="60" r="0.5" fill="white" opacity="0.6"/>
+                    <!-- paws -->
+                    <ellipse cx="37" cy="126" rx="9" ry="5" fill="#a8a8a8"/>
+                    <ellipse cx="63" cy="126" rx="9" ry="5" fill="#a8a8a8"/>
+                    <ellipse cx="32" cy="128" rx="3.2" ry="1.8" fill="#909090"/>
+                    <ellipse cx="39" cy="129" rx="3.2" ry="1.8" fill="#909090"/>
+                    <ellipse cx="61" cy="129" rx="3.2" ry="1.8" fill="#909090"/>
+                    <ellipse cx="68" cy="128" rx="3.2" ry="1.8" fill="#909090"/>
+                    <!-- tail -->
+                    <circle cx="50" cy="132" r="7" fill="#d8d8d8"/>
+                    <circle cx="50" cy="131" r="4.5" fill="#ebebeb"/>
+                </svg>
+            </div>
+        </div>
+        <div class="message-box" style="background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2);">
+            <p style="font-size: 0.9rem; line-height: 1.5; font-style: italic; margin-bottom: 15px;">
+                "Lets js sit back and leave all worries and look at you (the world) together? Shall we?<br><br>
+                now sit back for three minutes and keep your headphones on put the phone down for a bit and listen to this song you won't go on another page or anywhere okay? Sit back relax and enjoy forget all the worries"
+            </p>
+            <button class="btn-secondary" style="color: white; border-color: white;" onclick="window.backToRain()">Back to Umbrella</button>
+            <button class="btn-proceed" onclick="window.goToEarth()">Shall we go back?</button>
+        </div>
+    </div>
+
+    <!-- PAGE 4 -->
+    <div id="page4">
+        <canvas id="firework-canvas"></canvas>
+        <div class="message-box" style="background: rgba(0,0,0,0.5); color: white; border: none;">
+            <p style="font-style: italic; margin-bottom: 20px;">"Impressive no? Doesn't always looking at fireworks reminds of akaza and koyuki and also our last year diwali? I'm blessed to have you in my life"</p>
+            <button class="btn-secondary" style="color: white; border-color: white;" onclick="window.backToMoon()">Back to Moon</button>
+            <button class="btn-proceed" onclick="window.showTreats()">time for some treats</button>
+        </div>
+        <div class="platform">
+            <div class="railing"></div>
+            <div class="platform-animals">
+
+                <!-- DETAILED FOX -->
+                <svg width="72" height="105" viewBox="0 0 120 180">
+                    <!-- fluffy tail -->
+                    <path d="M78 155 Q115 140 112 108 Q108 82 90 90 Q82 94 80 108" fill="#e07820"/>
+                    <path d="M82 152 Q108 138 106 112 Q103 96 93 101 Q87 105 85 116" fill="#cc6010"/>
+                    <!-- tail white tip -->
+                    <ellipse cx="110" cy="103" rx="10" ry="8" fill="white" transform="rotate(-35 110 103)"/>
+                    <ellipse cx="109" cy="102" rx="6" ry="5" fill="#f0f0f0" transform="rotate(-35 109 102)"/>
+
+                    <!-- body -->
+                    <path d="M32 158 Q60 100 88 158" fill="#e07820"/>
+                    <!-- body shading -->
+                    <path d="M42 155 Q60 112 78 155" fill="#cc6010" opacity="0.4"/>
+                    <!-- belly patch -->
+                    <ellipse cx="60" cy="135" rx="16" ry="20" fill="#f5d5a0"/>
+                    <!-- chest fluff -->
+                    <ellipse cx="60" cy="118" rx="10" ry="8" fill="#f5d5a0"/>
+
+                    <!-- neck -->
+                    <rect x="52" y="88" width="16" height="14" rx="6" fill="#e07820"/>
+
+                    <!-- head -->
+                    <ellipse cx="60" cy="80" rx="24" ry="22" fill="#e07820"/>
+                    <!-- head top shading -->
+                    <ellipse cx="60" cy="70" rx="18" ry="12" fill="#cc6010" opacity="0.25"/>
+
+                    <!-- white face cheeks -->
+                    <ellipse cx="42" cy="84" rx="10" ry="8" fill="#f5d5a0"/>
+                    <ellipse cx="78" cy="84" rx="10" ry="8" fill="#f5d5a0"/>
+
+                    <!-- snout -->
+                    <ellipse cx="60" cy="88" rx="11" ry="8" fill="#f5d5a0"/>
+                    <!-- nose -->
+                    <ellipse cx="60" cy="84" rx="4" ry="3" fill="#222"/>
+                    <ellipse cx="59" cy="83" rx="1.5" ry="1" fill="#555"/>
+                    <!-- mouth -->
+                    <path d="M54 90 Q60 95 66 90" fill="none" stroke="#b05010" stroke-width="1.2" stroke-linecap="round"/>
+                    <!-- whisker dots -->
+                    <circle cx="46" cy="87" r="1" fill="#c07030"/>
+                    <circle cx="74" cy="87" r="1" fill="#c07030"/>
+
+                    <!-- ears outer -->
+                    <polygon points="40,62 26,22 50,55" fill="#e07820"/>
+                    <polygon points="80,62 94,22 70,55" fill="#e07820"/>
+                    <!-- ears inner -->
+                    <polygon points="40,60 30,30 48,54" fill="#d45f60"/>
+                    <polygon points="80,60 90,30 72,54" fill="#d45f60"/>
+                    <!-- ear tips dark -->
+                    <polygon points="40,58 28,24 34,24" fill="#222" opacity="0.3"/>
+                    <polygon points="80,58 92,24 86,24" fill="#222" opacity="0.3"/>
+
+                    <!-- eyes -->
+                    <ellipse cx="48" cy="76" rx="5" ry="5.5" fill="#1a1a1a"/>
+                    <ellipse cx="72" cy="76" rx="5" ry="5.5" fill="#1a1a1a"/>
+                    <!-- amber iris -->
+                    <ellipse cx="48" cy="76" rx="3.5" ry="4" fill="#c07820"/>
+                    <ellipse cx="72" cy="76" rx="3.5" ry="4" fill="#c07820"/>
+                    <!-- pupil slit -->
+                    <ellipse cx="48" cy="76" rx="1.2" ry="3.5" fill="#111"/>
+                    <ellipse cx="72" cy="76" rx="1.2" ry="3.5" fill="#111"/>
+                    <!-- eye shine -->
+                    <circle cx="50" cy="74" r="1.2" fill="white"/>
+                    <circle cx="74" cy="74" r="1.2" fill="white"/>
+
+                    <!-- legs (front paws peeking) -->
+                    <ellipse cx="46" cy="160" rx="8" ry="5" fill="#e07820"/>
+                    <ellipse cx="74" cy="160" rx="8" ry="5" fill="#e07820"/>
+                    <!-- paw toes -->
+                    <ellipse cx="42" cy="162" rx="3" ry="2" fill="#cc6010"/>
+                    <ellipse cx="50" cy="163" rx="3" ry="2" fill="#cc6010"/>
+                    <ellipse cx="70" cy="163" rx="3" ry="2" fill="#cc6010"/>
+                    <ellipse cx="78" cy="162" rx="3" ry="2" fill="#cc6010"/>
+                </svg>
+
+                <!-- DETAILED GREY BUNNY -->
+                <svg width="62" height="105" viewBox="0 0 110 180">
+                    <!-- long left ear -->
+                    <ellipse cx="40" cy="32" rx="10" ry="32" fill="#a0a0a0"/>
+                    <ellipse cx="40" cy="32" rx="5" ry="25" fill="#e8b4b8"/>
+                    <!-- ear fold shading -->
+                    <ellipse cx="40" cy="20" rx="4" ry="10" fill="#c8a0a4" opacity="0.5"/>
+
+                    <!-- long right ear (slightly tilted) -->
+                    <ellipse cx="70" cy="30" rx="10" ry="32" fill="#a0a0a0" transform="rotate(8 70 30)"/>
+                    <ellipse cx="70" cy="30" rx="5" ry="25" fill="#e8b4b8" transform="rotate(8 70 30)"/>
+                    <ellipse cx="71" cy="18" rx="4" ry="10" fill="#c8a0a4" opacity="0.5" transform="rotate(8 71 18)"/>
+
+                    <!-- body -->
+                    <ellipse cx="55" cy="135" rx="28" ry="35" fill="#a8a8a8"/>
+                    <!-- body shading -->
+                    <ellipse cx="55" cy="140" rx="20" ry="26" fill="#909090" opacity="0.3"/>
+                    <!-- belly -->
+                    <ellipse cx="55" cy="138" rx="16" ry="22" fill="#d8d8d8"/>
+                    <!-- chest fluff -->
+                    <ellipse cx="55" cy="115" rx="11" ry="9" fill="#d8d8d8"/>
+
+                    <!-- neck -->
+                    <ellipse cx="55" cy="96" rx="14" ry="9" fill="#a8a8a8"/>
+
+                    <!-- head -->
+                    <ellipse cx="55" cy="78" rx="26" ry="24" fill="#a8a8a8"/>
+                    <!-- head shading top -->
+                    <ellipse cx="55" cy="68" rx="18" ry="12" fill="#888" opacity="0.2"/>
+
+                    <!-- cheek puffs -->
+                    <ellipse cx="36" cy="84" rx="11" ry="9" fill="#b8b8b8"/>
+                    <ellipse cx="74" cy="84" rx="11" ry="9" fill="#b8b8b8"/>
+
+                    <!-- snout -->
+                    <ellipse cx="55" cy="88" rx="10" ry="7" fill="#d0d0d0"/>
+                    <!-- nose -->
+                    <ellipse cx="55" cy="84" rx="4" ry="3" fill="#e8a0b0"/>
+                    <ellipse cx="54" cy="83" rx="1.5" ry="1" fill="#f0c0c8"/>
+                    <!-- mouth -->
+                    <path d="M49 90 Q55 96 61 90" fill="none" stroke="#999" stroke-width="1.2" stroke-linecap="round"/>
+                    <line x1="55" y1="87" x2="55" y2="91" stroke="#999" stroke-width="1" stroke-linecap="round"/>
+                    <!-- whiskers -->
+                    <line x1="35" y1="86" x2="48" y2="88" stroke="#bbb" stroke-width="0.8" stroke-linecap="round"/>
+                    <line x1="35" y1="89" x2="48" y2="89" stroke="#bbb" stroke-width="0.8" stroke-linecap="round"/>
+                    <line x1="62" y1="88" x2="75" y2="86" stroke="#bbb" stroke-width="0.8" stroke-linecap="round"/>
+                    <line x1="62" y1="89" x2="75" y2="89" stroke="#bbb" stroke-width="0.8" stroke-linecap="round"/>
+
+                    <!-- eyes -->
+                    <ellipse cx="43" cy="74" rx="5.5" ry="6" fill="#1a1a1a"/>
+                    <ellipse cx="67" cy="74" rx="5.5" ry="6" fill="#1a1a1a"/>
+                    <!-- iris -->
+                    <ellipse cx="43" cy="74" rx="4" ry="4.5" fill="#3a2060"/>
+                    <ellipse cx="67" cy="74" rx="4" ry="4.5" fill="#3a2060"/>
+                    <!-- pupil -->
+                    <ellipse cx="43" cy="74" rx="2.5" ry="3.5" fill="#111"/>
+                    <ellipse cx="67" cy="74" rx="2.5" ry="3.5" fill="#111"/>
+                    <!-- eye shine -->
+                    <circle cx="45" cy="71" r="1.5" fill="white"/>
+                    <circle cx="69" cy="71" r="1.5" fill="white"/>
+                    <!-- eye gleam -->
+                    <circle cx="42" cy="75" r="0.6" fill="white" opacity="0.6"/>
+                    <circle cx="66" cy="75" r="0.6" fill="white" opacity="0.6"/>
+
+                    <!-- front paws -->
+                    <ellipse cx="42" cy="162" rx="10" ry="6" fill="#a8a8a8"/>
+                    <ellipse cx="68" cy="162" rx="10" ry="6" fill="#a8a8a8"/>
+                    <!-- paw toes -->
+                    <ellipse cx="37" cy="164" rx="3.5" ry="2" fill="#909090"/>
+                    <ellipse cx="44" cy="165" rx="3.5" ry="2" fill="#909090"/>
+                    <ellipse cx="63" cy="165" rx="3.5" ry="2" fill="#909090"/>
+                    <ellipse cx="71" cy="164" rx="3.5" ry="2" fill="#909090"/>
+
+                    <!-- fluffy tail -->
+                    <circle cx="55" cy="168" r="9" fill="#d8d8d8"/>
+                    <circle cx="55" cy="167" r="6" fill="#e8e8e8"/>
+                </svg>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE 5 (FIXED) -->
+    <div id="page5">
+        <h1 class="page5-title">FOR YOU VANSHIKA 🌹💌</h1>
+        <p class="page5-subtitle">tap on something special for you 🎀</p>
+
+        <div class="gift-box">
+
+            <!-- Option 1: Bouquet -->
+            <div class="gift-card" onclick="window.openGift('bouquet')">
+                <div class="gift-card-icon">💐</div>
+                <div class="gift-card-text">
+                    <p>Bouquet</p>
+                    <span>something pretty, just like you</span>
+                </div>
+            </div>
+
+            <!-- Option 2: Letter -->
+            <div class="gift-card" onclick="window.openGift('letter')">
+                <div class="gift-card-icon">💌</div>
+                <div class="gift-card-text">
+                    <p>Letter</p>
+                    <span>words from the heart</span>
+                </div>
+            </div>
+
+            <!-- Option 3: Someone? -->
+            <div class="gift-card" onclick="window.openGift('someone')">
+                <div class="gift-card-icon">🤍</div>
+                <div class="gift-card-text">
+                    <p>Someone?</p>
+                    <span>who could it be... 🫣</span>
+                </div>
+            </div>
+
+        </div>
+
+        <button class="btn-secondary" onclick="window.backToFireworks()">← Back to Fireworks</button>
+    </div>
+
+    <!-- PAGE BOUQUET -->
+    <div id="page-bouquet">
+        <!-- Top video (upper half) -->
+        <video id="vid-top" src="Video1.mp4" muted loop playsinline></video>
+        <!-- Bottom video (lower half) -->
+        <video id="vid-bottom" src="Video2.mp4" muted loop playsinline></video>
+
+        <!-- Centre card -->
+        <div class="bouquet-card">
+            <!-- Full SVG Bouquet -->
+            <svg width="200" height="220" viewBox="0 0 200 220" style="display:block;margin:0 auto 16px;">
+
+                <!-- STEMS -->
+                <line x1="100" y1="210" x2="85"  y2="140" stroke="#4a7c3f" stroke-width="3" stroke-linecap="round"/>
+                <line x1="100" y1="210" x2="100" y2="135" stroke="#4a7c3f" stroke-width="3" stroke-linecap="round"/>
+                <line x1="100" y1="210" x2="115" y2="140" stroke="#4a7c3f" stroke-width="3" stroke-linecap="round"/>
+                <line x1="100" y1="210" x2="70"  y2="148" stroke="#5a8c4f" stroke-width="2.5" stroke-linecap="round"/>
+                <line x1="100" y1="210" x2="130" y2="148" stroke="#5a8c4f" stroke-width="2.5" stroke-linecap="round"/>
+                <line x1="100" y1="210" x2="58"  y2="158" stroke="#4a7c3f" stroke-width="2" stroke-linecap="round"/>
+                <line x1="100" y1="210" x2="142" y2="158" stroke="#4a7c3f" stroke-width="2" stroke-linecap="round"/>
+
+                <!-- LEAVES -->
+                <ellipse cx="78" cy="168" rx="14" ry="6" fill="#5a9e48" transform="rotate(-40 78 168)"/>
+                <ellipse cx="122" cy="168" rx="14" ry="6" fill="#5a9e48" transform="rotate(40 122 168)"/>
+                <ellipse cx="64" cy="172" rx="12" ry="5" fill="#4a8a38" transform="rotate(-55 64 172)"/>
+                <ellipse cx="136" cy="172" rx="12" ry="5" fill="#4a8a38" transform="rotate(55 136 172)"/>
+
+                <!-- RIBBON WRAP -->
+                <path d="M82 195 Q100 188 118 195 Q110 205 100 207 Q90 205 82 195Z" fill="#e8687a" opacity="0.9"/>
+                <path d="M88 193 Q100 186 112 193" fill="none" stroke="#ff8a9a" stroke-width="1.5"/>
+                <!-- Ribbon bow -->
+                <path d="M93 190 Q85 182 80 186 Q82 192 93 190Z" fill="#ff8a9a"/>
+                <path d="M107 190 Q115 182 120 186 Q118 192 107 190Z" fill="#ff8a9a"/>
+                <circle cx="100" cy="190" r="4" fill="#e8687a"/>
+
+                <!-- BACK FLOWERS (layer 1 - furthest back) -->
+                <!-- Pink rose back left -->
+                <g transform="translate(58,152)">
+                    <circle cx="0" cy="0" r="13" fill="#f48fb1"/>
+                    <circle cx="-5" cy="-4" r="9" fill="#f06292"/>
+                    <circle cx="4" cy="-5" r="8" fill="#ec407a"/>
+                    <circle cx="0" cy="-2" r="6" fill="#e91e8c"/>
+                    <circle cx="0" cy="-2" r="3" fill="#c2185b"/>
+                </g>
+                <!-- Lavender back right -->
+                <g transform="translate(142,152)">
+                    <circle cx="0" cy="0" r="13" fill="#ce93d8"/>
+                    <circle cx="5" cy="-4" r="9" fill="#ba68c8"/>
+                    <circle cx="-4" cy="-5" r="8" fill="#ab47bc"/>
+                    <circle cx="0" cy="-2" r="6" fill="#9c27b0"/>
+                    <circle cx="0" cy="-2" r="3" fill="#7b1fa2"/>
+                </g>
+
+                <!-- MID LAYER FLOWERS -->
+                <!-- White/cream flower left -->
+                <g transform="translate(72,140)">
+                    <circle cx="-6" cy="4"  r="9" fill="#fff9c4"/>
+                    <circle cx="6"  cy="4"  r="9" fill="#fff9c4"/>
+                    <circle cx="-6" cy="-4" r="9" fill="#fff9c4"/>
+                    <circle cx="6"  cy="-4" r="9" fill="#fff9c4"/>
+                    <circle cx="0"  cy="0"  r="8" fill="#fffde7"/>
+                    <circle cx="0"  cy="0"  r="4" fill="#ffeb3b"/>
+                </g>
+                <!-- Peach/orange flower right -->
+                <g transform="translate(128,140)">
+                    <circle cx="-6" cy="4"  r="9" fill="#ffccbc"/>
+                    <circle cx="6"  cy="4"  r="9" fill="#ffccbc"/>
+                    <circle cx="-6" cy="-4" r="9" fill="#ffccbc"/>
+                    <circle cx="6"  cy="-4" r="9" fill="#ffccbc"/>
+                    <circle cx="0"  cy="0"  r="8" fill="#ffe0b2"/>
+                    <circle cx="0"  cy="0"  r="4" fill="#ff8f00"/>
+                </g>
+
+                <!-- FRONT LAYER - main roses -->
+                <!-- Left red rose -->
+                <g transform="translate(85,128)">
+                    <circle cx="0"  cy="6"  r="14" fill="#e53935"/>
+                    <circle cx="-7" cy="2"  r="11" fill="#ef5350"/>
+                    <circle cx="7"  cy="2"  r="11" fill="#ef5350"/>
+                    <circle cx="-5" cy="-5" r="9"  fill="#e53935"/>
+                    <circle cx="5"  cy="-5" r="9"  fill="#e53935"/>
+                    <circle cx="0"  cy="-3" r="8"  fill="#c62828"/>
+                    <circle cx="0"  cy="-3" r="4"  fill="#b71c1c"/>
+                    <!-- petal highlights -->
+                    <ellipse cx="-8" cy="0" rx="3" ry="5" fill="#ef9a9a" opacity="0.4" transform="rotate(-20 -8 0)"/>
+                    <ellipse cx="8"  cy="0" rx="3" ry="5" fill="#ef9a9a" opacity="0.4" transform="rotate(20 8 0)"/>
+                </g>
+
+                <!-- Centre big pink rose -->
+                <g transform="translate(100,118)">
+                    <circle cx="0"   cy="8"  r="16" fill="#f48fb1"/>
+                    <circle cx="-9"  cy="3"  r="13" fill="#f06292"/>
+                    <circle cx="9"   cy="3"  r="13" fill="#f06292"/>
+                    <circle cx="-7"  cy="-6" r="11" fill="#ec407a"/>
+                    <circle cx="7"   cy="-6" r="11" fill="#ec407a"/>
+                    <circle cx="0"   cy="-4" r="10" fill="#e91e63"/>
+                    <circle cx="0"   cy="-4" r="5"  fill="#c2185b"/>
+                    <!-- highlights -->
+                    <ellipse cx="-10" cy="1" rx="4" ry="6" fill="#f8bbd0" opacity="0.5" transform="rotate(-20 -10 1)"/>
+                    <ellipse cx="10"  cy="1" rx="4" ry="6" fill="#f8bbd0" opacity="0.5" transform="rotate(20 10 1)"/>
+                    <ellipse cx="0"  cy="-8" rx="3" ry="5" fill="#f8bbd0" opacity="0.4"/>
+                </g>
+
+                <!-- Right red rose -->
+                <g transform="translate(115,128)">
+                    <circle cx="0"  cy="6"  r="14" fill="#e53935"/>
+                    <circle cx="-7" cy="2"  r="11" fill="#ef5350"/>
+                    <circle cx="7"  cy="2"  r="11" fill="#ef5350"/>
+                    <circle cx="-5" cy="-5" r="9"  fill="#e53935"/>
+                    <circle cx="5"  cy="-5" r="9"  fill="#e53935"/>
+                    <circle cx="0"  cy="-3" r="8"  fill="#c62828"/>
+                    <circle cx="0"  cy="-3" r="4"  fill="#b71c1c"/>
+                    <ellipse cx="-8" cy="0" rx="3" ry="5" fill="#ef9a9a" opacity="0.4" transform="rotate(-20 -8 0)"/>
+                    <ellipse cx="8"  cy="0" rx="3" ry="5" fill="#ef9a9a" opacity="0.4" transform="rotate(20 8 0)"/>
+                </g>
+
+                <!-- Baby's breath / filler flowers scattered -->
+                <circle cx="62"  cy="135" r="4" fill="white" opacity="0.9"/>
+                <circle cx="68"  cy="128" r="3" fill="white" opacity="0.85"/>
+                <circle cx="57"  cy="142" r="3.5" fill="white" opacity="0.9"/>
+                <circle cx="138" cy="135" r="4" fill="white" opacity="0.9"/>
+                <circle cx="132" cy="128" r="3" fill="white" opacity="0.85"/>
+                <circle cx="143" cy="142" r="3.5" fill="white" opacity="0.9"/>
+                <circle cx="75"  cy="118" r="3" fill="white" opacity="0.8"/>
+                <circle cx="125" cy="118" r="3" fill="white" opacity="0.8"/>
+                <circle cx="80"  cy="110" r="2.5" fill="white" opacity="0.75"/>
+                <circle cx="120" cy="110" r="2.5" fill="white" opacity="0.75"/>
+
+                <!-- tiny sparkles -->
+                <text x="52"  y="130" font-size="10" opacity="0.8">✨</text>
+                <text x="140" y="125" font-size="9"  opacity="0.7">✨</text>
+                <text x="95"  y="100" font-size="8"  opacity="0.7">✨</text>
+            </svg>
+            <p class="bouquet-quote">
+                "The world is cruel<br>
+                And yes i'll always be with you<br>
+                Even if i sacrifice everything<br>
+                I'll still protect you"
+            </p>
+        </div>
+
+        <!-- Back button -->
+        <button class="bouquet-back" onclick="window.closeBouquet()">← go back</button>
+    </div>
+
+    <!-- Gift Overlay Popup -->
+    <div id="gift-overlay" onclick="if(event.target===this) window.closeGift()">
+        <div class="overlay-card">
+            <h2 id="overlay-title"></h2>
+            <div id="overlay-body"></div>
+            <button class="overlay-close" onclick="window.closeGift()">close 🌸</button>
+        </div>
+    </div>
+
+    <script>
+        let fireworksArr = [];
+        let moonMusic;
+        let fireworkMusic;
+
+        window.startExperience = function() {
+            const bg = document.getElementById('main-bg');
+            if(bg) bg.style.background = "#0f172a";
+            const rainArea = document.getElementById('rain-container');
+            rainArea.style.display = "block";
+            rainArea.innerHTML = '';
+            for (let i = 0; i < 60; i++) {
+                let drop = document.createElement('div');
+                drop.className = 'drop';
+                drop.style.left = Math.random() * 100 + 'vw';
+                drop.style.top = Math.random() * -100 + 'vh';
+                drop.style.animationDuration = (Math.random() * 0.5 + 0.5) + 's';
+                rainArea.appendChild(drop);
+            }
+            document.getElementById('page1').classList.add('hidden');
+            document.getElementById('page2').classList.remove('hidden');
+        };
+
+        window.flyToSpace = function() {
+            const rocket = document.getElementById('rocket');
+            rocket.style.bottom = "120vh";
+            setTimeout(() => {
+                document.getElementById('page2').classList.add('hidden');
+                document.getElementById('rain-container').style.display = "none";
+                document.getElementById('page3').style.display = "flex";
+                playMoonMusic();
+                const field = document.getElementById('star-field');
+                if(field.children.length === 0) {
+                    for(let i=0; i<150; i++) {
+                        const star = document.createElement('div');
+                        star.className = 'star';
+                        star.style.width = star.style.height = Math.random()*2.5+'px';
+                        star.style.top = Math.random()*100+'vh';
+                        star.style.left = Math.random()*100+'vw';
+                        field.appendChild(star);
+                    }
+                }
+            }, 800);
+        };
+
+        window.backToRain = function() {
+            stopMoonMusic();
+            document.getElementById('page3').style.display = "none";
+            document.getElementById('page2').classList.remove('hidden');
+            document.getElementById('rain-container').style.display = "block";
+            const rocket = document.getElementById('rocket');
+            rocket.style.bottom = "-150px";
+            rocket.style.transform = "translateX(-50%) rotate(0deg)";
+        };
+
+        window.goToEarth = function() {
+            stopMoonMusic();
+            const rocket = document.getElementById('rocket');
+            rocket.style.transition = "none";
+            rocket.style.bottom = "80vh";
+            rocket.style.transform = "translateX(-50%) rotate(180deg)";
+            setTimeout(() => {
+                rocket.style.transition = "bottom 2s ease-in";
+                rocket.style.bottom = "-300px";
+                setTimeout(() => {
+                    document.getElementById('page3').style.display = "none";
+                    document.getElementById('page4').style.display = "flex";
+                    playFireworkMusic();
+                    initFireworks();
+                }, 1200);
+            }, 100);
+        };
+
+        window.backToMoon = function() {
+            stopFireworkMusic();
+            document.getElementById('page4').style.display = "none";
+            document.getElementById('page5').style.display = "none";
+            document.getElementById('page3').style.display = "flex";
+            playMoonMusic();
+        };
+
+        window.showTreats = function() {
+            stopFireworkMusic();
+            document.getElementById('page4').style.display = "none";
+            document.getElementById('page5').style.display = "flex";
+            const bg = document.getElementById('main-bg');
+            if(bg) bg.style.background = "#fff5f7";
+            setInterval(createHeart, 500);
+        };
+
+        window.backToFireworks = function() {
+            const bg = document.getElementById('main-bg');
+            if(bg) bg.style.background = "#050b1a";
+            document.getElementById('page5').style.display = "none";
+            document.getElementById('page4').style.display = "flex";
+            playFireworkMusic();
+        };
+
+        window.openGift = function(type) {
+            const overlay = document.getElementById('gift-overlay');
+            const overlayTitle = document.getElementById('overlay-title');
+            const overlayBody = document.getElementById('overlay-body');
+            if (type === 'bouquet') {
+                document.getElementById('page5').style.display = 'none';
+                document.getElementById('page-bouquet').style.display = 'flex';
+                if (!window.bouquetMusic) {
+                    window.bouquetMusic = new Audio('AkumaNoko.mp3');
+                    window.bouquetMusic.loop = true;
+                }
+                window.bouquetMusic.play().catch(e => console.log('bouquet music pending'));
+                startPetals();
+                document.getElementById('vid-top').play();
+                document.getElementById('vid-bottom').play();
+                return;
+            } else if (type === 'letter') {
+                overlayTitle.textContent = '💌 A Letter For You';
+                overlayBody.innerHTML = `
+                    <p style="color:#555; font-size:0.9rem; line-height:1.85; text-align:left;">
+                        Sorry for everything. Sorry for not being enough. Sorry for not being able to show care. Sorry for being too much. Sorry for being bad at communication. Sorry that you met someone like me.<br><br>
+                        I genuinely js want the best for you. I genuinely care about you. I am immature, ik you must've gotten tired of hearing this — that i always blame it on my immaturity and not change. I am js too ig braindead for anything..<br><br>
+                        You're genuinely someone I'm glad to have. I am really really grateful for you. I'm sorry for making you feel like i took you for granted. I wish.. you had met someone better. Far beyond better than me. Someone who knows how to talk and treat anyone properly. Someone as pretty and beautiful as you..<br><br>
+                        You've been through so much. I will support you always, with everything i can. Because you matter, Vanshika. You're a really really important person. You are always the best girl I've ever met and i love seeing you happy and shining. I hope you win in life — even if it's with me or without me — cuz before anything, you'll always be my friend. An important one. And i hope the best for you 🫶🏻<br><br>
+                        You're a great person.
+                    </p>`;
+            } else if (type === 'someone') {
+                overlayTitle.textContent = '🤍 Someone?';
+                overlayBody.innerHTML = `
+                    <div style="font-size:3.5rem; margin-bottom:15px;">🫂</div>
+                    <p style="color:#d63384; font-size:1rem; line-height:1.7;">
+                        Someone who thinks about you more than they say.<br>
+                        Someone who'd run through rain just to bring you an umbrella. ☂️<br>
+                        Someone who's incredibly lucky to have you in their life.<br><br>
+                        <strong>That someone is right here. Always.</strong> 🌹
+                    </p>`;
+            }
+            overlay.style.display = 'flex';
+        };
+
+        window.closeGift = function() {
+            document.getElementById('gift-overlay').style.display = 'none';
+        };
+
+        window.closeBouquet = function() {
+            document.getElementById('page-bouquet').style.display = 'none';
+            document.getElementById('page5').style.display = 'flex';
+            if (window.bouquetMusic) { window.bouquetMusic.pause(); window.bouquetMusic.currentTime = 0; }
+            document.getElementById('vid-top').pause();
+            document.getElementById('vid-bottom').pause();
+            // remove all petals
+            document.querySelectorAll('.rose-petal').forEach(p => p.remove());
+            if (window.petalInterval) clearInterval(window.petalInterval);
+        };
+
+        function startPetals() {
+            if (window.petalInterval) clearInterval(window.petalInterval);
+            window.petalInterval = setInterval(() => {
+                const petal = document.createElement('div');
+                petal.className = 'rose-petal';
+                petal.innerHTML = ['🌹','🌸','🪷','❤️','✨'][Math.floor(Math.random()*5)];
+                petal.style.left = Math.random() * 100 + 'vw';
+                petal.style.top = '-30px';
+                petal.style.animationDuration = (Math.random() * 3 + 3) + 's';
+                petal.style.fontSize = (Math.random() * 14 + 10) + 'px';
+                document.getElementById('page-bouquet').appendChild(petal);
+                setTimeout(() => petal.remove(), 6000);
+            }, 300);
+        }
+
+        function playMoonMusic() {
+            if (!moonMusic) { moonMusic = new Audio('Music1.mp3'); moonMusic.loop = true; }
+            moonMusic.play().catch(e => console.log("Moon music pending interaction"));
+        }
+        function stopMoonMusic() {
+            if (moonMusic) { moonMusic.pause(); moonMusic.currentTime = 0; }
+        }
+        function playFireworkMusic() {
+            if (!fireworkMusic) { fireworkMusic = new Audio('Music2.mp3'); fireworkMusic.loop = true; }
+            fireworkMusic.play().catch(e => console.log("Firework music pending interaction"));
+        }
+        function stopFireworkMusic() {
+            if (fireworkMusic) { fireworkMusic.pause(); fireworkMusic.currentTime = 0; }
+        }
+
+        function createHeart() {
+            const h = document.createElement('div');
+            h.className = 'heart-particle';
+            h.innerHTML = ['❤️','💖','🌸','✨'][Math.floor(Math.random()*4)];
+            h.style.left = Math.random() * 100 + 'vw';
+            h.style.bottom = '-20px';
+            document.body.appendChild(h);
+            setTimeout(() => h.remove(), 4000);
+        }
+
+        function initFireworks() {
+            const canvas = document.getElementById('firework-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            function animate() {
+                if(document.getElementById('page4').style.display === "none") return;
+                ctx.fillStyle = 'rgba(5, 11, 26, 0.2)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                if(Math.random() < 0.05) {
+                    const x = Math.random() * canvas.width;
+                    const y = Math.random() * canvas.height * 0.4;
+                    const color = `hsl(${Math.random() * 360}, 100%, 75%)`;
+                    for(let i=0; i<40; i++) {
+                        fireworksArr.push({x, y, color, vx: (Math.random()-0.5)*12, vy: (Math.random()-0.5)*12, a: 1});
+                    }
+                }
+                fireworksArr.forEach((p, i) => {
+                    p.x += p.vx; p.y += p.vy; p.a -= 0.015;
+                    if(p.a <= 0) fireworksArr.splice(i, 1);
+                    else {
+                        ctx.globalAlpha = p.a;
+                        ctx.fillStyle = p.color;
+                        ctx.beginPath(); ctx.arc(p.x, p.y, 2.5, 0, Math.PI*2); ctx.fill();
+                    }
+                });
+                requestAnimationFrame(animate);
+            }
+            animate();
+        }
+
+        // Init bokeh on load
+        const b = document.getElementById('bokeh-container');
+        for(let i=0; i<15; i++){
+            const div = document.createElement('div');
+            div.className = 'bokeh';
+            div.style.width = div.style.height = Math.random()*100+50+'px';
+            div.style.left = Math.random()*100+'vw';
+            div.style.top = Math.random()*100+'vh';
+            div.style.background = `rgba(255, ${Math.random()*100+150}, ${Math.random()*100+150}, 0.3)`;
+            div.style.animationDuration = Math.random()*10+10+'s';
+            b.appendChild(div);
+        }
+    </script>
+
+</body>
+</html>
